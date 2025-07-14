@@ -6,10 +6,6 @@ import org.jacodb.impl.features.classpaths.UnknownClassMethodsAndFields
 import org.jacodb.impl.features.classpaths.UnknownClasses
 import org.jacodb.impl.jacodb
 import java.io.File
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import kotlin.streams.asSequence
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,7 +17,6 @@ private val libs = listOf(
 )
 
 suspend fun main() {
-    //getClassesInPackage("basic")
     useJacoDb { cp ->
         val outFolder = File("graphs")
         libs.forEach { (name, prefix) ->
