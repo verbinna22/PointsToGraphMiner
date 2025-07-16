@@ -13,8 +13,8 @@ fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = 
             val lhs = resolveJcExprToPtVertex(method, inst.lineNumber, inst.lhv, edges, handSide = HandSide.LEFT)
             val rhs = resolveJcExprToPtVertex(method, inst.lineNumber, inst.rhv, edges, handSide = HandSide.RIGHT)
             if (lhs != null && rhs != null) {
-                if (lhs is PtReturnWithContext) {
-                    edges.add(PtAssignWithContextEdge(lhs = PtReturn(lhs.method), rhs = rhs, contextId = -lhs.contextId))
+                if (rhs is PtReturnWithContext) {
+                    edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = PtReturn(rhs.method), contextId = -rhs.contextId))
                 } else {
                     edges.add(PtAssignEdge(lhs = lhs, rhs = rhs))
                 }

@@ -94,7 +94,7 @@ private fun dumpPtGraph(
                     when (edge) {
                         is PtAllocEdge -> "alloc"
                         is PtAssignEdge -> "assign"
-                        is PtAssignWithContextEdge -> "assign_i ${edge.contextId}"
+                        is PtAssignWithContextEdge -> "assign_${edge.nameForward}"
                         is PtLoadEdge -> "load_i ${fieldIdGenerator.generateId(edge.field)}"
                         is PtStoreEdge -> "store_i ${fieldIdGenerator.generateId(edge.field)}"
                     }
@@ -108,7 +108,7 @@ private fun dumpPtGraph(
                     when (edge) {
                         is PtAllocEdge -> "alloc_r"
                         is PtAssignEdge -> "assign_r"
-                        is PtAssignWithContextEdge -> "assign_r_i ${-edge.contextId}"
+                        is PtAssignWithContextEdge -> "assign_r_${edge.nameReverse}"
                         is PtLoadEdge -> "load_r_i ${fieldIdGenerator.generateId(edge.field)}"
                         is PtStoreEdge -> "store_r_i ${fieldIdGenerator.generateId(edge.field)}"
                     }

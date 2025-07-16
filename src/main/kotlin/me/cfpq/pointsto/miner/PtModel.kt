@@ -134,7 +134,12 @@ data class PtAssignWithContextEdge(
     override val lhs: PtVertex,
     override val rhs: PtVertex,
     val contextId: Int,
-) : PtEdge
+) : PtEdge {
+    val nameForward: String
+        get() = if (contextId > 0) { "${contextId}_open" } else { "${contextId}_close" }
+    val nameReverse: String
+        get() = if (contextId > 0) { "${contextId}_close" } else { "${contextId}_open" }
+}
 
 data class PtLoadEdge(
     override val lhs: PtVertex,
