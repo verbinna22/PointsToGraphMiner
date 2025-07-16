@@ -68,6 +68,15 @@ data class PtReturn(
             method.enclosingClass.classpath.objectType
 }
 
+data class PtReturnWithContext(
+    val method: JcMethod,
+    val contextId: Int,
+) : PtVertex {
+    override val type: JcType get() =
+        method.enclosingClass.classpath.findTypeOrNull(method.returnType.typeName) ?:
+        method.enclosingClass.classpath.objectType
+}
+
 class PtTempVertex(
     override val type: JcType,
     val lineNumber: Int
@@ -121,6 +130,12 @@ data class PtAssignEdge(
     override val rhs: PtVertex,
 ) : PtEdge
 
+data class PtAssignWithContextEdge(
+    override val lhs: PtVertex,
+    override val rhs: PtVertex,
+    val contextId: Int,
+) : PtEdge
+
 data class PtLoadEdge(
     override val lhs: PtVertex,
     val rhsInstance: PtVertex?,
@@ -149,4 +164,5 @@ fun PtEdge.copy(lhs: PtVertex, rhs: PtVertex): PtEdge = when (this) {
     is PtAssignEdge -> PtAssignEdge(lhs, rhs)
     is PtLoadEdge -> PtLoadEdge(lhs, rhs, field)
     is PtStoreEdge -> PtStoreEdge(lhs, field, rhs)
+    is PtAssignWithContextEdge -> PtAssignWithContextEdge(lhs, rhs, contextId)
 }

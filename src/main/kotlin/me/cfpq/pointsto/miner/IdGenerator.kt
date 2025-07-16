@@ -2,6 +2,8 @@ package me.cfpq.pointsto.miner
 
 import java.io.File
 import java.net.URL
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 interface IdGenerator<in T> {
     fun generateId(value: T): Int
@@ -12,6 +14,14 @@ class NonConcurrentIdGenerator<T> : IdGenerator<T> {
 
     override fun generateId(value: T): Int = idCache.getOrPut(value) { idCache.size }
     fun getIdOrNull(value: T): Int? = idCache[value]
+}
+
+class ConcurrentIdGenerator<T> : IdGenerator<T> {
+    private val lock = ReentrantLock()
+    val idCache = mutableMapOf<T, Int>()
+
+    override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size } }
+    fun getIdOrNull(value: T): Int? = lock.withLock { return idCache[value] }
 }
 
 fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? = { it }) =

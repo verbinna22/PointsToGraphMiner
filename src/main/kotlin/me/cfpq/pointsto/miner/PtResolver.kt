@@ -5,6 +5,7 @@ import org.jacodb.api.JcMethod
 import org.jacodb.api.cfg.*
 
 private val logger = KotlinLogging.logger {}
+private val contextIdGenerator = ConcurrentIdGenerator<Int>()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
@@ -12,7 +13,11 @@ fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = 
             val lhs = resolveJcExprToPtVertex(method, inst.lineNumber, inst.lhv, edges, handSide = HandSide.LEFT)
             val rhs = resolveJcExprToPtVertex(method, inst.lineNumber, inst.rhv, edges, handSide = HandSide.RIGHT)
             if (lhs != null && rhs != null) {
-                edges.add(PtAssignEdge(lhs = lhs, rhs = rhs))
+                if (lhs is PtReturnWithContext) {
+                    edges.add(PtAssignWithContextEdge(lhs = PtReturn(lhs.method), rhs = rhs, contextId = -lhs.contextId))
+                } else {
+                    edges.add(PtAssignEdge(lhs = lhs, rhs = rhs))
+                }
             }
         }
 
@@ -87,21 +92,22 @@ private fun resolveJcExprToPtVertex(
 
     is JcCallExpr -> {
         require(handSide == HandSide.RIGHT)
+        val contextId = contextIdGenerator.generateId(lineNumber)
         expr.args.forEachIndexed { i, arg ->
             val rhs = resolveJcExprToPtVertex(method, lineNumber, arg, edges, handSide)
             val lhs = PtArg(expr.method.method, i)
             if (rhs != null) {
-                edges.add(PtAssignEdge(lhs = lhs, rhs = rhs))
+                edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId))
             }
         }
         if (expr is JcInstanceCallExpr) {
             val lhs = PtThis(expr.method.method)
             val rhs = resolveJcExprToPtVertex(method, lineNumber, expr.instance, edges, handSide)
             if (rhs != null) {
-                edges.add(PtAssignEdge(lhs = lhs, rhs = rhs))
+                edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId))
             }
         }
-        PtReturn(expr.method.method)
+        PtReturnWithContext(expr.method.method, contextId)
     }
 
     else -> {
