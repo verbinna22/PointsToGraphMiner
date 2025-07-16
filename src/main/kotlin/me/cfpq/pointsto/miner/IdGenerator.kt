@@ -20,7 +20,7 @@ class ConcurrentIdGenerator<T> : IdGenerator<T> {
     private val lock = ReentrantLock()
     val idCache = mutableMapOf<T, Int>()
 
-    override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size } }
+    override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size + 1 } }
     fun getIdOrNull(value: T): Int? = lock.withLock { return idCache[value] }
     fun getMaxNumber(): Int = lock.withLock { return idCache.size }
 }
