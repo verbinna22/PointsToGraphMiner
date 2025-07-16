@@ -32,7 +32,7 @@ suspend fun useJacoDb(block: (JcClasspath) -> Unit) = jacodb {}.use { db ->
 
 private fun getRuntimeClasspath(): List<File> {
     val classpath = System.getProperty("java.class.path") + ":" + "/mnt/data/MyOwnFolder/entertaiment/java/classes"
-    println(classpath)
+    // println(classpath)
     val classpathFiles = classpath.split(File.pathSeparator)
         .filter { it.isNotEmpty() }
         .map { File(it) }
