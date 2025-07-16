@@ -11,6 +11,7 @@ const val FIELD_MAPPINGS_FILE_NAME = "field_mappings.txt"
 const val TYPE_MAPPINGS_FILE_NAME = "type_mappings.txt"
 const val TYPES_FILE_NAME = "types.txt"
 const val SUP_TYPES_FILE_NAME = "sup_types.txt"
+const val CONTEXTS_NUMBER_FILE_NAME = "contexts_numbers.txt"
 
 private val logger = KotlinLogging.logger {}
 
@@ -67,6 +68,10 @@ fun minePtGraph(
     vertexIdGenerator.writeMappings(outFolder.resolve(VERTEX_MAPPINGS_FILE_NAME))
     fieldIdGenerator.writeMappings(outFolder.resolve(FIELD_MAPPINGS_FILE_NAME))
     typeIdGenerator.writeMappings(outFolder.resolve(TYPE_MAPPINGS_FILE_NAME)) { it.typeName }
+    outFolder.resolve(CONTEXTS_NUMBER_FILE_NAME).printWriter().buffered().use { writer ->
+        writer.append(contextIdGenerator.getMaxNumber().toString())
+        writer.newLine()
+    }
 }
 
 private fun dumpPtGraph(

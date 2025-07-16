@@ -22,6 +22,7 @@ class ConcurrentIdGenerator<T> : IdGenerator<T> {
 
     override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size } }
     fun getIdOrNull(value: T): Int? = lock.withLock { return idCache[value] }
+    fun getMaxNumber(): Int = lock.withLock { return idCache.size }
 }
 
 fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? = { it }) =

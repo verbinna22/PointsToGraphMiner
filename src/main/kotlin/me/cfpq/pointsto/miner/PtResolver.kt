@@ -5,7 +5,7 @@ import org.jacodb.api.JcMethod
 import org.jacodb.api.cfg.*
 
 private val logger = KotlinLogging.logger {}
-private val contextIdGenerator = ConcurrentIdGenerator<Int>()
+internal val contextIdGenerator = ConcurrentIdGenerator<Int>()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
