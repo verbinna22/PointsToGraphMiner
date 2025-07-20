@@ -136,9 +136,9 @@ data class PtAssignWithContextEdge(
     val contextId: Int,
 ) : PtEdge {
     val nameForward: String
-        get() = if (contextId > 0) { "${contextId}_open" } else { "${contextId}_close" }
+        get() = if (contextId > 0) { "${contextId}_open" } else { "${-contextId}_close" }
     val nameReverse: String
-        get() = if (contextId > 0) { "${contextId}_close" } else { "${contextId}_open" }
+        get() = if (contextId > 0) { "${contextId}_close" } else { "${-contextId}_open" }
 }
 
 data class PtLoadEdge(

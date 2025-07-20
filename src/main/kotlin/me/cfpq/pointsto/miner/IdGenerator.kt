@@ -18,7 +18,7 @@ class NonConcurrentIdGenerator<T> : IdGenerator<T> {
 
 class ConcurrentIdGenerator<T> : IdGenerator<T> {
     private val lock = ReentrantLock()
-    val idCache = mutableMapOf<T, Int>()
+    private val idCache = mutableMapOf<T, Int>()
 
     override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size + 1 } }
     fun getIdOrNull(value: T): Int? = lock.withLock { return idCache[value] }

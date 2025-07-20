@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 
 class GraphMinerTest {
     @ParameterizedTest
-    @ValueSource(strings = ["simple", "inheritance"])
+    @ValueSource(strings = ["simple", "inheritance"]) //"inheritance"])//"
     fun `graph miner should work correctly on sample classes`(testCase: String) = runBlocking {
         val actualFolder = Files.createTempDirectory("pt_graph_out").toFile()
         actualFolder.deleteOnExit()

@@ -23,6 +23,7 @@ fun minePtGraph(
 ) {
     // Do not refactor it to use Kotlin Sequences instead of Java Streams.
     // Java Streams are used intentionally, so latter they can be made parallel.
+    contextIdGenerator = ConcurrentIdGenerator<Int>()
     val edges = cp
         .allClasses()
         .filter { it.name.startsWith(classesPrefix) }
