@@ -5,6 +5,7 @@ import org.jacodb.api.JcClasspath
 import org.jacodb.api.JcType
 import java.io.File
 import java.util.stream.Collectors.toSet
+import kotlin.time.measureTime
 
 const val VERTEX_MAPPINGS_FILE_NAME = "vertex_mappings.txt"
 const val FIELD_MAPPINGS_FILE_NAME = "field_mappings.txt"
@@ -12,6 +13,7 @@ const val TYPE_MAPPINGS_FILE_NAME = "type_mappings.txt"
 const val TYPES_FILE_NAME = "types.txt"
 const val SUP_TYPES_FILE_NAME = "sup_types.txt"
 const val CONTEXTS_NUMBER_FILE_NAME = "contexts_numbers.txt"
+const val TIME_STATISTICS_FILE_NAME = "graph_generate_time.txt"
 
 private val logger = KotlinLogging.logger {}
 
@@ -23,54 +25,60 @@ fun minePtGraph(
 ) {
     // Do not refactor it to use Kotlin Sequences instead of Java Streams.
     // Java Streams are used intentionally, so latter they can be made parallel.
-    contextIdGenerator = ConcurrentIdGenerator<Int>()
-    val edges = cp
-        .allClasses()
-        .filter { it.name.startsWith(classesPrefix) }
-        //.map { println("Map ${it.name}\n"); it } //
-        .flatMap { it.declaredMethods.stream() }
-        .flatMap { method ->
-            val edges = mutableListOf<PtEdge>()
-            method.instList.forEach { inst ->
-                resolveJcInst(method, inst, edges)
+    val timeForGeneration = measureTime {
+        contextIdGenerator = ConcurrentIdGenerator<Int>()
+        val edges = cp
+            .allClasses()
+            .filter { it.name.startsWith(classesPrefix) }
+            //.map { println("Map ${it.name}\n"); it } //
+            .flatMap { it.declaredMethods.stream() }
+            .flatMap { method ->
+                val edges = mutableListOf<PtEdge>()
+                method.instList.forEach { inst ->
+                    resolveJcInst(method, inst, edges)
+                }
+                method.overriddenMethods.forEach { overriddenMethod ->
+                    edges.add(PtAssignEdge(lhs = PtThis(method), rhs = PtThis(overriddenMethod)))
+                    method.parameters.indices
+                        .forEach { i ->
+                            edges.add(PtAssignEdge(lhs = PtArg(method, i), rhs = PtArg(overriddenMethod, i)))
+                        }
+                    edges.add(PtAssignEdge(lhs = PtReturn(overriddenMethod), rhs = PtReturn(method)))
+                }
+                edges.stream()
             }
-            method.overriddenMethods.forEach { overriddenMethod ->
-                edges.add(PtAssignEdge(lhs = PtThis(method), rhs = PtThis(overriddenMethod)))
-                method.parameters.indices
-                    .forEach { i ->
-                        edges.add(PtAssignEdge(lhs = PtArg(method, i), rhs = PtArg(overriddenMethod, i)))
-                    }
-                edges.add(PtAssignEdge(lhs = PtReturn(overriddenMethod), rhs = PtReturn(method)))
-            }
-            edges.stream()
+            .distinct()
+            .let { edges -> ptSimplifier.simplify(edges.collect(toSet())) }
+            .toList()
+
+        logStats(edges)
+
+        val vertexIdGenerator = NonConcurrentIdGenerator<PtVertex>()
+        val fieldIdGenerator = NonConcurrentIdGenerator<PtField>()
+
+        vertexIdGenerator.generateId(PtStaticContextVertex(cp))
+
+        outFolder.mkdirs()
+
+        dumpPtGraph(
+            graphFile = outFolder.resolve("${outFolder.name}.g"),
+            edges = edges,
+            vertexIdGenerator = vertexIdGenerator,
+            fieldIdGenerator = fieldIdGenerator
+        )
+
+        val typeIdGenerator = NonConcurrentIdGenerator<JcType>()
+        dumpTypesData(outFolder, vertexIdGenerator, typeIdGenerator)
+        vertexIdGenerator.writeMappings(outFolder.resolve(VERTEX_MAPPINGS_FILE_NAME))
+        fieldIdGenerator.writeMappings(outFolder.resolve(FIELD_MAPPINGS_FILE_NAME))
+        typeIdGenerator.writeMappings(outFolder.resolve(TYPE_MAPPINGS_FILE_NAME)) { it.typeName }
+        outFolder.resolve(CONTEXTS_NUMBER_FILE_NAME).printWriter().buffered().use { writer ->
+            writer.append(contextIdGenerator.getMaxNumber().toString())
+            writer.newLine()
         }
-        .distinct()
-        .let { edges -> ptSimplifier.simplify(edges.collect(toSet())) }
-        .toList()
-
-    logStats(edges)
-
-    val vertexIdGenerator = NonConcurrentIdGenerator<PtVertex>()
-    val fieldIdGenerator = NonConcurrentIdGenerator<PtField>()
-
-    vertexIdGenerator.generateId(PtStaticContextVertex(cp))
-
-    outFolder.mkdirs()
-
-    dumpPtGraph(
-        graphFile = outFolder.resolve("${outFolder.name}.g"),
-        edges = edges,
-        vertexIdGenerator = vertexIdGenerator,
-        fieldIdGenerator = fieldIdGenerator
-    )
-
-    val typeIdGenerator = NonConcurrentIdGenerator<JcType>()
-    dumpTypesData(outFolder, vertexIdGenerator, typeIdGenerator)
-    vertexIdGenerator.writeMappings(outFolder.resolve(VERTEX_MAPPINGS_FILE_NAME))
-    fieldIdGenerator.writeMappings(outFolder.resolve(FIELD_MAPPINGS_FILE_NAME))
-    typeIdGenerator.writeMappings(outFolder.resolve(TYPE_MAPPINGS_FILE_NAME)) { it.typeName }
-    outFolder.resolve(CONTEXTS_NUMBER_FILE_NAME).printWriter().buffered().use { writer ->
-        writer.append(contextIdGenerator.getMaxNumber().toString())
+    }
+    outFolder.resolve(TIME_STATISTICS_FILE_NAME).printWriter().buffered().use { writer ->
+        writer.append(timeForGeneration.toString())
         writer.newLine()
     }
 }

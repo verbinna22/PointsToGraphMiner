@@ -9,14 +9,15 @@ import java.io.File
 
 private val logger = KotlinLogging.logger {}
 
-private val libs = listOf(
-    "basic" to "basic",
-    "collections" to "collections",
-    "cornerCases" to "cornerCases",
-    "generalJava" to "generalJava",
-)
+private var libs : List<Pair<String, String>> = listOf()//= listOf(
+//    "basic" to "basic",
+//    "collections" to "collections",
+//    "cornerCases" to "cornerCases",
+//    "generalJava" to "generalJava",
+//)
 
 suspend fun main() {
+    libs = File("libs.txt").bufferedReader().readLines().map { c -> c to c.split(".").last() }
     useJacoDb { cp ->
         val outFolder = File("graphs")
         libs.forEach { (name, prefix) ->
@@ -31,8 +32,9 @@ suspend fun useJacoDb(block: (JcClasspath) -> Unit) = jacodb {}.use { db ->
 }
 
 private fun getRuntimeClasspath(): List<File> {
-    val classpath = System.getProperty("java.class.path") + ":" + "/mnt/data/MyOwnFolder/entertaiment/java/classes"
-    // println(classpath)
+    val paths = File("path.txt").bufferedReader().readLines().joinToString(":")
+    val classpath = "${System.getProperty("java.class.path")}:${paths}"
+//    println(classpath)
     val classpathFiles = classpath.split(File.pathSeparator)
         .filter { it.isNotEmpty() }
         .map { File(it) }

@@ -1,0 +1,8 @@
+basic
+collections
+cornerCases
+generalJava
+reactor
+org.apache.jackrabbit
+com.fasterxml.jackson
+org.jivesoftware.openfire
