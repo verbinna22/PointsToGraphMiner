@@ -1,8 +1,8 @@
 package me.cfpq.pointsto.miner
 
 import mu.KotlinLogging
-import org.jacodb.api.JcClasspath
-import org.jacodb.api.JcType
+import org.jacodb.api.jvm.JcClasspath
+import org.jacodb.api.jvm.JcType
 import java.io.File
 import java.util.stream.Collectors.toSet
 import kotlin.time.measureTime
@@ -29,8 +29,9 @@ fun minePtGraph(
         contextIdGenerator = ConcurrentIdGenerator<Int>()
         val edges = cp
             .allClasses()
+            //.map { println("PATH ${it.name}\n"); it } //
             .filter { it.name.startsWith(classesPrefix) }
-            //.map { println("Map ${it.name}\n"); it } //
+            //.map { println("MAP ${it.name}\n"); it } //
             .flatMap { it.declaredMethods.stream() }
             .flatMap { method ->
                 val edges = mutableListOf<PtEdge>()

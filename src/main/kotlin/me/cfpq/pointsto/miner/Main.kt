@@ -1,10 +1,11 @@
 package me.cfpq.pointsto.miner
 
 import mu.KotlinLogging
-import org.jacodb.api.JcClasspath
+import org.jacodb.api.jvm.JcClasspath
 import org.jacodb.impl.features.classpaths.UnknownClassMethodsAndFields
 import org.jacodb.impl.features.classpaths.UnknownClasses
 import org.jacodb.impl.jacodb
+
 import java.io.File
 
 private val logger = KotlinLogging.logger {}
@@ -17,7 +18,7 @@ private var libs : List<Pair<String, String>> = listOf()//= listOf(
 //)
 
 suspend fun main() {
-    libs = File("libs.txt").bufferedReader().readLines().map { c -> c to c.split(".").last() }
+    libs = File("libs.txt").bufferedReader().readLines().map { c -> c.split(".").last() to c }
     useJacoDb { cp ->
         val outFolder = File("graphs")
         libs.forEach { (name, prefix) ->
@@ -27,8 +28,9 @@ suspend fun main() {
     }
 }
 
-suspend fun useJacoDb(block: (JcClasspath) -> Unit) = jacodb {}.use { db ->
-    db.classpath(getRuntimeClasspath(), listOf(UnknownClassMethodsAndFields, UnknownClasses)).use(block)
+suspend fun useJacoDb(block: (JcClasspath) -> Unit) = jacodb { keepLocalVariableNames() }.use { db ->
+    db.classpath(getRuntimeClasspath(), listOf(UnknownClassMethodsAndFields, UnknownClasses,
+    )).use(block)
 }
 
 private fun getRuntimeClasspath(): List<File> {

@@ -1,13 +1,13 @@
 package me.cfpq.pointsto.miner
 
-import org.jacodb.api.JcClasspath
-import org.jacodb.api.JcField
-import org.jacodb.api.JcMethod
-import org.jacodb.api.JcType
-import org.jacodb.api.cfg.JcExpr
-import org.jacodb.api.ext.objectType
-import org.jacodb.api.ext.toType
-import org.jacodb.api.ext.void
+import org.jacodb.api.jvm.JcClasspath
+import org.jacodb.api.jvm.JcField
+import org.jacodb.api.jvm.JcMethod
+import org.jacodb.api.jvm.JcType
+import org.jacodb.api.jvm.cfg.JcExpr
+import org.jacodb.api.jvm.ext.objectType
+import org.jacodb.api.jvm.ext.toType
+import org.jacodb.api.jvm.ext.void
 
 sealed interface PtVertex {
     val type: JcType

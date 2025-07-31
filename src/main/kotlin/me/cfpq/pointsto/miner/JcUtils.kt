@@ -1,9 +1,17 @@
 package me.cfpq.pointsto.miner
 
-import org.jacodb.api.*
-import org.jacodb.api.ext.*
+import org.jacodb.api.jvm.JcArrayType
+import org.jacodb.api.jvm.JcClassOrInterface
+import org.jacodb.api.jvm.JcClasspath
+import org.jacodb.api.jvm.JcMethod
+import org.jacodb.api.jvm.JcRefType
+import org.jacodb.api.jvm.JcType
+import org.jacodb.api.jvm.ext.allSuperHierarchySequence
+import org.jacodb.api.jvm.ext.objectType
+import org.jacodb.api.jvm.ext.toType
 import org.jacodb.impl.features.classpaths.JcUnknownMethod
 import java.util.stream.Stream
+import org.jacodb.api.jvm.ext.findMethodOrNull
 
 fun JcType.toRaw(): JcType {
     return when (this) {

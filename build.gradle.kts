@@ -1,7 +1,7 @@
 plugins {
     java
     application
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "2.0.0"
     jacoco
 }
 
@@ -28,6 +28,7 @@ application {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://jitpack.io") }
 }
 
 //tasks {
@@ -38,9 +39,15 @@ repositories {
 //}
 
 dependencies {
-    implementation(group = "org.jacodb", name = "jacodb-core", version = jacoDbVersion)
-    implementation(group = "org.jacodb", name = "jacodb-analysis", version = jacoDbVersion)
-    implementation(group = "org.jacodb", name = "jacodb-approximations", version = jacoDbVersion)
+//    implementation(group = "org.jacodb", name = "jacodb-api", version = jacoDbVersion)
+//    implementation(group = "org.jacodb", name = "jacodb-core", version = jacoDbVersion)
+//    implementation(group = "org.jacodb", name = "jacodb-analysis", version = jacoDbVersion)
+//    implementation(group = "org.jacodb", name = "jacodb-approximations", version = jacoDbVersion)
+    implementation("com.github.UnitTestBot.jacodb:jacodb-api-common:d7dd9d343b")
+    implementation("com.github.UnitTestBot.jacodb:jacodb-api-jvm:d7dd9d343b")
+    implementation("com.github.UnitTestBot.jacodb:jacodb-api-storage:d7dd9d343b")
+    implementation("com.github.UnitTestBot.jacodb:jacodb-core:d7dd9d343b")
+
     implementation(group =  "org.slf4j", name = "slf4j-simple", version = slf4jVersion)
     implementation(group = "io.github.microutils", name = "kotlin-logging", version = kotlinLoggingVersion)
 

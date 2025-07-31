@@ -1,8 +1,24 @@
 package me.cfpq.pointsto.miner
 
 import mu.KotlinLogging
-import org.jacodb.api.JcMethod
-import org.jacodb.api.cfg.*
+import org.jacodb.api.jvm.JcMethod
+import org.jacodb.api.jvm.cfg.JcArgument
+import org.jacodb.api.jvm.cfg.JcArrayAccess
+import org.jacodb.api.jvm.cfg.JcAssignInst
+import org.jacodb.api.jvm.cfg.JcCallExpr
+import org.jacodb.api.jvm.cfg.JcCallInst
+import org.jacodb.api.jvm.cfg.JcCastExpr
+import org.jacodb.api.jvm.cfg.JcExpr
+import org.jacodb.api.jvm.cfg.JcFieldRef
+import org.jacodb.api.jvm.cfg.JcInst
+import org.jacodb.api.jvm.cfg.JcInstanceCallExpr
+import org.jacodb.api.jvm.cfg.JcLocalVar
+import org.jacodb.api.jvm.cfg.JcNewArrayExpr
+import org.jacodb.api.jvm.cfg.JcNewExpr
+import org.jacodb.api.jvm.cfg.JcRawComplexValue
+import org.jacodb.api.jvm.cfg.JcRef
+import org.jacodb.api.jvm.cfg.JcReturnInst
+import org.jacodb.api.jvm.cfg.JcThis
 
 private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentIdGenerator<Int>()
@@ -58,7 +74,7 @@ private fun resolveJcExprToPtVertex(
     is JcArgument -> PtArg(method, expr.index)
     is JcLocalVar -> PtLocalVar(method, lineNumber, expr.name, expr.type)
     is JcThis -> PtThis(method)
-    is JcComplexValue -> {
+    is JcRef -> { // TODO
         val (instance, field) = when (expr) {
             is JcFieldRef -> expr.instance?.let {
                 resolveJcExprToPtVertex(
