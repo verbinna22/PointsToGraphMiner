@@ -19,18 +19,18 @@ private val logger = KotlinLogging.logger {}
 
 fun minePtGraph(
     cp: JcClasspath,
-    classesPrefix: String,
+    classesPrefixes: List<String>,
     outFolder: File,
     ptSimplifier: PtSimplifier = NoopPtSimplifier,
 ) {
     // Do not refactor it to use Kotlin Sequences instead of Java Streams.
     // Java Streams are used intentionally, so latter they can be made parallel.
     val timeForGeneration = measureTime {
-        contextIdGenerator = ConcurrentIdGenerator<Int>()
+//        contextIdGenerator = ConcurrentIdGenerator<Int>()
         val edges = cp
             .allClasses()
             //.map { println("PATH ${it.name}\n"); it } //
-            .filter { it.name.startsWith(classesPrefix) }
+            .filter { currentClass -> classesPrefixes.any { currentClass.name.startsWith(it) } }
             //.map { println("MAP ${it.name}\n"); it } //
             .flatMap { it.declaredMethods.stream() }
             .flatMap { method ->
@@ -50,14 +50,18 @@ fun minePtGraph(
             }
             .distinct()
             .let { edges -> ptSimplifier.simplify(edges.collect(toSet())) }
-            .toList()
+            .toMutableList()
 
         logStats(edges)
 
         val vertexIdGenerator = NonConcurrentIdGenerator<PtVertex>()
         val fieldIdGenerator = NonConcurrentIdGenerator<PtField>()
 
-        vertexIdGenerator.generateId(PtStaticContextVertex(cp))
+        val context = PtStaticContextVertex(cp)
+        val contextAlloc = PtStaticContextAllocVertex(cp)
+        vertexIdGenerator.generateId(context)
+        vertexIdGenerator.generateId(contextAlloc)
+        edges.add(PtAllocEdge(context, contextAlloc))
 
         outFolder.mkdirs()
 

@@ -1,8 +1,8 @@
-basic
-collections
-cornerCases
-generalJava
-reactor
+basic benchmark.objects
+collections benchmark.objects
+cornerCases benchmark.objects
+generalJava benchmark.objects
+reactor benchmark.objects
 org.apache.jackrabbit
 com.fasterxml.jackson
 org.jivesoftware.openfire

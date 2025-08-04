@@ -17,7 +17,7 @@ class GraphMinerTest {
         useJacoDb { cp ->
             minePtGraph(
                 cp = cp,
-                classesPrefix = "me.cfpq.pointsto.miner.sample.$testCase.",
+                classesPrefixes = listOf("me.cfpq.pointsto.miner.sample.$testCase."),
                 outFolder = actualFolder,
                 ptSimplifier = SlowPtSimplifier
             )
@@ -42,7 +42,7 @@ class GraphMinerTest {
                 val outFolder = Files.createTempDirectory("pt_graph_out").toFile()
                 outFolder.deleteOnExit()
                 useJacoDb { cp ->
-                    minePtGraph(cp, "org.mockito.", outFolder)
+                    minePtGraph(cp, listOf("org.mockito."), outFolder)
                 }
             }
         }

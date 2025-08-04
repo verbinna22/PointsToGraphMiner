@@ -111,6 +111,16 @@ data class PtStaticContextVertex(val classpath: JcClasspath) : PtVertex {
     override fun toString(): String = "PtStaticContextVertex"
 }
 
+/**
+ * Auxiliary vertex used to represent alloc of owner of all static fields
+ */
+data class PtStaticContextAllocVertex(val classpath: JcClasspath) : PtVertex {
+    override val type: JcType
+        get() = classpath.void
+
+    override fun toString(): String = "PtStaticContextAllocVertex"
+}
+
 sealed interface PtField
 
 data class PtSimpleField(val field: JcField) : PtField
