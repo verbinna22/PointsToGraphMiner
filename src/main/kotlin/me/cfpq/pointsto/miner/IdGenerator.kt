@@ -16,13 +16,12 @@ class NonConcurrentIdGenerator<T> : IdGenerator<T> {
     fun getIdOrNull(value: T): Int? = idCache[value]
 }
 
-class ConcurrentIdGenerator<T> : IdGenerator<T> {
+class ConcurrentIdGenerator {
     private val lock = ReentrantLock()
-    private val idCache = mutableMapOf<T, Int>()
+    private var idCache: Int = 0
 
-    override fun generateId(value: T): Int = lock.withLock { return idCache.getOrPut(value) { idCache.size + 1 } }
-    fun getIdOrNull(value: T): Int? = lock.withLock { return idCache[value] }
-    fun getMaxNumber(): Int = lock.withLock { return idCache.size }
+    fun generateId(): Int = lock.withLock { return idCache++ }
+    fun getMaxNumber(): Int = lock.withLock { return idCache }
 }
 
 fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? = { it }) =

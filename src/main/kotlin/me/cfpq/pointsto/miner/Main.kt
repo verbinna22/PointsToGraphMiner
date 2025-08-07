@@ -20,13 +20,13 @@ private var libs : List<Pair<String, List<String>>> = listOf()//= listOf(
 suspend fun main() {
     libs = File("libs.txt").bufferedReader().readLines().map { line ->
         val libs = line.split(" ")
-        libs[0].split(".").last() to libs
+        libs[0].replace(".", "_") to libs
     }
     useJacoDb { cp ->
         val outFolder = File("graphs")
         libs.forEach { (name, prefixes) ->
             logger.info { "Processing $name..." }
-            minePtGraph(cp, prefixes.map { "$it." }, outFolder.resolve(name))
+            minePtGraph(cp, prefixes.map { "$it" }, outFolder.resolve(name)) // TODO point
         }
     }
 }

@@ -21,7 +21,7 @@ import org.jacodb.api.jvm.cfg.JcReturnInst
 import org.jacodb.api.jvm.cfg.JcThis
 
 private val logger = KotlinLogging.logger {}
-internal var contextIdGenerator = ConcurrentIdGenerator<Int>()
+internal var contextIdGenerator = ConcurrentIdGenerator()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
@@ -37,13 +37,17 @@ fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = 
             }
         }
 
-        is JcCallInst -> resolveJcExprToPtVertex(
-            method,
-            inst.lineNumber,
-            inst.callExpr,
-            edges,
-            handSide = HandSide.RIGHT
-        )
+        is JcCallInst -> {
+            if (inst.callExpr.method.method.name != "use" || inst.callExpr.method.method.enclosingClass.name != "benchmark.internal.Benchmark") {
+                resolveJcExprToPtVertex(
+                    method,
+                    inst.lineNumber,
+                    inst.callExpr,
+                    edges,
+                    handSide = HandSide.RIGHT
+                )
+            }
+        }
 
         is JcReturnInst -> inst.returnValue?.let { returnValue ->
             val lhs = PtReturn(method)
@@ -108,7 +112,7 @@ private fun resolveJcExprToPtVertex(
 
     is JcCallExpr -> {
         require(handSide == HandSide.RIGHT)
-        val contextId = contextIdGenerator.generateId(lineNumber)
+        val contextId = contextIdGenerator.generateId()
         expr.args.forEachIndexed { i, arg ->
             val rhs = resolveJcExprToPtVertex(method, lineNumber, arg, edges, handSide)
             val lhs = PtArg(expr.method.method, i)
