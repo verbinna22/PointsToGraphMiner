@@ -38,14 +38,6 @@ fun minePtGraph(
                 method.instList.forEach { inst ->
                     resolveJcInst(method, inst, edges)
                 }
-                method.overriddenMethods.forEach { overriddenMethod ->
-                    edges.add(PtAssignEdge(lhs = PtThis(method), rhs = PtThis(overriddenMethod)))
-                    method.parameters.indices
-                        .forEach { i ->
-                            edges.add(PtAssignEdge(lhs = PtArg(method, i), rhs = PtArg(overriddenMethod, i)))
-                        }
-                    edges.add(PtAssignEdge(lhs = PtReturn(overriddenMethod), rhs = PtReturn(method)))
-                }
                 edges.stream()
             }
             .distinct()
