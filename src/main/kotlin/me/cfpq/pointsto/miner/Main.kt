@@ -26,7 +26,7 @@ suspend fun main() {
         val outFolder = File("graphs")
         libs.forEach { (name, prefixes) ->
             logger.info { "Processing $name..." }
-            minePtGraph(cp, prefixes.map { "$it" }, outFolder.resolve(name)) // TODO point
+            minePtGraph(cp, prefixes.map { "$it." }, outFolder.resolve(name))
         }
     }
 }

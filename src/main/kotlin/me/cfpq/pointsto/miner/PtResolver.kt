@@ -38,6 +38,7 @@ fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = 
         }
 
         is JcCallInst -> {
+            // remove Benchmark.use() fake call
             if (inst.callExpr.method.method.name != "use" || inst.callExpr.method.method.enclosingClass.name != "benchmark.internal.Benchmark") {
                 resolveJcExprToPtVertex(
                     method,
