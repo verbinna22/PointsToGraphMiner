@@ -79,7 +79,7 @@ private fun resolveJcExprToPtVertex(
     is JcArgument -> PtArg(method, expr.index)
     is JcLocalVar -> PtLocalVar(method, lineNumber, expr.name, expr.type)
     is JcThis -> PtThis(method)
-    is JcRef -> { // TODO
+    is JcRef -> { // in new jacodb version we change it to Ref
         val (instance, field) = when (expr) {
             is JcFieldRef -> expr.instance?.let {
                 resolveJcExprToPtVertex(

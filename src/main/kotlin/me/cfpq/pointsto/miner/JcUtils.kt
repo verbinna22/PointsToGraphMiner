@@ -39,6 +39,6 @@ val JcMethod.overriddenMethods
 
 fun JcClasspath.allClasses(): Stream<JcClassOrInterface> =
     locations.stream()
-        .sequential() // TODO make parallel when better performance is needed, requires `ConcurrentIdGenerator`
+        .sequential() // make parallel when better performance is needed, requires `ConcurrentIdGenerator`
         .flatMap { it.classNames.orEmpty().stream() }
         .flatMap { findClasses(it).stream() }
