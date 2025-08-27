@@ -27,6 +27,7 @@ fun minePtGraph(
     // Java Streams are used intentionally, so latter they can be made parallel.
     val timeForGeneration = measureTime {
         contextIdGenerator = ConcurrentFCallIdGenerator<String>()
+        functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
         val edges = cp
             .allClasses()
             //.map { println("PATH ${it.name}\n"); it } //

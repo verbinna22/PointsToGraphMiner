@@ -18,6 +18,7 @@ private var libs : List<Pair<String, List<String>>> = listOf()//= listOf(
 //)
 
 suspend fun main() {
+//    showFunId = false to old version
     libs = File("libs.txt").bufferedReader().readLines().map { line ->
         val libs = line.split(" ")
         libs[0].replace(".", "_") to libs

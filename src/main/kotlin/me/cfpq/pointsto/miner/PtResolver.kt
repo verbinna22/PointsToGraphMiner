@@ -22,6 +22,7 @@ import org.jacodb.api.jvm.ext.humanReadableSignature
 
 private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
+internal var functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
@@ -36,7 +37,8 @@ fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = 
                                 PtAssignWithContextEdge(
                                     lhs = lhs[0],
                                     rhs = PtReturn(retMethod.method),
-                                    contextId = -retMethod.contextId
+                                    contextId = -retMethod.contextId,
+                                    funId = retMethod.funId,
                                 )
                             )
                         } else {
@@ -126,6 +128,7 @@ private fun resolveJcExprToPtVertex(
     is JcCallExpr -> {
         require(handSide == HandSide.RIGHT)
         val contextId = contextIdGenerator.generateId(expr.method.method.humanReadableSignature)
+        val funId = functionNameIdGenerator.generateId(expr.method.method.humanReadableSignature)
         val allMethods = sequence {
             yield(expr.method.method)
             yieldAll(expr.method.method.overriddenMethods)
@@ -135,7 +138,7 @@ private fun resolveJcExprToPtVertex(
             allMethods.forEach { method ->
                 val lhs = PtArg(method, i)
                 for (rhs in rhss) {
-                    edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId))
+                    edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId, funId = funId))
                 }
             }
         }
@@ -144,11 +147,11 @@ private fun resolveJcExprToPtVertex(
             allMethods.forEach { method ->
                 val lhs = PtThis(method)
                 for (rhs in rhss) {
-                    edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId))
+                    edges.add(PtAssignWithContextEdge(lhs = lhs, rhs = rhs, contextId = contextId, funId = funId))
                 }
             }
         }
-        allMethods.map { PtReturnWithContext(it, contextId) }.toList()
+        allMethods.map { PtReturnWithContext(it, contextId, funId) }.toList()
     }
 
     else -> {

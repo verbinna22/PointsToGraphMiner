@@ -9,6 +9,8 @@ import org.jacodb.api.jvm.ext.objectType
 import org.jacodb.api.jvm.ext.toType
 import org.jacodb.api.jvm.ext.void
 
+internal var showFunId = true
+
 sealed interface PtVertex {
     val type: JcType
 }
@@ -71,6 +73,7 @@ data class PtReturn(
 data class PtReturnWithContext(
     val method: JcMethod,
     val contextId: Int,
+    val funId: Int,
 ) : PtVertex {
     override val type: JcType get() =
         method.enclosingClass.classpath.findTypeOrNull(method.returnType.typeName) ?:
@@ -144,11 +147,12 @@ data class PtAssignWithContextEdge(
     override val lhs: PtVertex,
     override val rhs: PtVertex,
     val contextId: Int,
+    val funId: Int,
 ) : PtEdge {
     val nameForward: String
-        get() = if (contextId > 0) { "${contextId}_open" } else { "${-contextId}_close" }
+        get() = (if (showFunId) "${funId}_" else "") + (if (contextId > 0) "${contextId}_open" else "${-contextId}_close")
     val nameReverse: String
-        get() = if (contextId > 0) { "${contextId}_close" } else { "${-contextId}_open" }
+        get() = (if (showFunId) "${funId}_" else "") + (if (contextId > 0) "${contextId}_close" else "${-contextId}_open")
 }
 
 data class PtLoadEdge(
@@ -179,5 +183,5 @@ fun PtEdge.copy(lhs: PtVertex, rhs: PtVertex): PtEdge = when (this) {
     is PtAssignEdge -> PtAssignEdge(lhs, rhs)
     is PtLoadEdge -> PtLoadEdge(lhs, rhs, field)
     is PtStoreEdge -> PtStoreEdge(lhs, field, rhs)
-    is PtAssignWithContextEdge -> PtAssignWithContextEdge(lhs, rhs, contextId)
+    is PtAssignWithContextEdge -> PtAssignWithContextEdge(lhs, rhs, contextId, funId)
 }

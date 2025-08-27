@@ -30,6 +30,16 @@ class ConcurrentFCallIdGenerator<T> {
     fun getMaxNumber(): Int = lock.withLock { return maxNumber }
 }
 
+class ConcurrentFNameIdGenerator<T> {
+    private val lock = ReentrantLock()
+    private val idCache = mutableMapOf<T, Int>()
+
+    fun generateId(signature: T): Int = lock.withLock {
+        idCache[signature] = idCache.getOrDefault(signature, idCache.size)
+        return idCache[signature]!!
+    }
+}
+
 fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? = { it }) =
     file.printWriter().buffered().use { writer ->
         idCache.entries
