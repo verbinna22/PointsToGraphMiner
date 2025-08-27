@@ -26,7 +26,7 @@ fun minePtGraph(
     // Do not refactor it to use Kotlin Sequences instead of Java Streams.
     // Java Streams are used intentionally, so latter they can be made parallel.
     val timeForGeneration = measureTime {
-        contextIdGenerator = ConcurrentIdGenerator()
+        contextIdGenerator = ConcurrentFCallIdGenerator<String>()
         val edges = cp
             .allClasses()
             //.map { println("PATH ${it.name}\n"); it } //

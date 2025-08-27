@@ -18,9 +18,10 @@ import org.jacodb.api.jvm.cfg.JcNewExpr
 import org.jacodb.api.jvm.cfg.JcRef
 import org.jacodb.api.jvm.cfg.JcReturnInst
 import org.jacodb.api.jvm.cfg.JcThis
+import org.jacodb.api.jvm.ext.humanReadableSignature
 
 private val logger = KotlinLogging.logger {}
-internal var contextIdGenerator = ConcurrentIdGenerator()
+internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
@@ -124,7 +125,7 @@ private fun resolveJcExprToPtVertex(
 
     is JcCallExpr -> {
         require(handSide == HandSide.RIGHT)
-        val contextId = contextIdGenerator.generateId()
+        val contextId = contextIdGenerator.generateId(expr.method.method.humanReadableSignature)
         val allMethods = sequence {
             yield(expr.method.method)
             yieldAll(expr.method.method.overriddenMethods)

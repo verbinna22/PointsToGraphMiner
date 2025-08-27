@@ -4,6 +4,7 @@ import java.io.File
 import java.net.URL
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.max
 
 interface IdGenerator<in T> {
     fun generateId(value: T): Int
@@ -16,12 +17,17 @@ class NonConcurrentIdGenerator<T> : IdGenerator<T> {
     fun getIdOrNull(value: T): Int? = idCache[value]
 }
 
-class ConcurrentIdGenerator {
+class ConcurrentFCallIdGenerator<T> {
     private val lock = ReentrantLock()
-    private var idCache: Int = 0
+    private val idCache = mutableMapOf<T, Int>()
+    private var maxNumber = 0
 
-    fun generateId(): Int = lock.withLock { return idCache++ }
-    fun getMaxNumber(): Int = lock.withLock { return idCache }
+    fun generateId(signature: T): Int = lock.withLock {
+        idCache[signature] = idCache.getOrDefault(signature, 0) + 1
+        maxNumber = max(maxNumber, idCache[signature]!!)
+        return idCache[signature]!!
+    }
+    fun getMaxNumber(): Int = lock.withLock { return maxNumber }
 }
 
 fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? = { it }) =
