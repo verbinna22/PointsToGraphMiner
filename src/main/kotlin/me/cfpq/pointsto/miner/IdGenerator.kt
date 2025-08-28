@@ -6,6 +6,8 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.max
 
+internal var maximumContextNumber = 1_000_000_000
+
 interface IdGenerator<in T> {
     fun generateId(value: T): Int
 }
@@ -23,7 +25,7 @@ class ConcurrentFCallIdGenerator<T> {
     private var maxNumber = 0
 
     fun generateId(signature: T): Int = lock.withLock {
-        idCache[signature] = idCache.getOrDefault(signature, 0) + 1
+        idCache[signature] = (idCache.getOrDefault(signature, 0) + 1) % maximumContextNumber
         maxNumber = max(maxNumber, idCache[signature]!!)
         return idCache[signature]!!
     }
