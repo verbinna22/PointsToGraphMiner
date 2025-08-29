@@ -14,6 +14,7 @@ const val TYPES_FILE_NAME = "types.txt"
 const val SUP_TYPES_FILE_NAME = "sup_types.txt"
 const val CONTEXTS_NUMBER_FILE_NAME = "contexts_numbers.txt"
 const val TIME_STATISTICS_FILE_NAME = "graph_generate_time.txt"
+const val BAD_FUNCTION_FILE_NAME = "bf.txt"
 
 private val logger = KotlinLogging.logger {}
 
@@ -75,6 +76,11 @@ fun minePtGraph(
             writer.newLine()
         }
     }
+//    exclusiveFunctions.forEach { println("#exceed: $it ${functionNameIdGenerator.getId(it)}") }
+    outFolder.resolve(BAD_FUNCTION_FILE_NAME).printWriter().buffered().use { writer ->
+        exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it\n") }
+    }
+    exclusiveFunctions.clear()
     outFolder.resolve(TIME_STATISTICS_FILE_NAME).printWriter().buffered().use { writer ->
         writer.append(timeForGeneration.toString())
         writer.newLine()

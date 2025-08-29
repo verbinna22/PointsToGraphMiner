@@ -7,6 +7,7 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 
 internal var maximumContextNumber = 1_000_000_000
+internal val exclusiveFunctions = mutableSetOf<String>()
 
 interface IdGenerator<in T> {
     fun generateId(value: T): Int
@@ -26,6 +27,8 @@ class ConcurrentFCallIdGenerator<T> {
 
     fun generateId(signature: T): Int = lock.withLock {
         idCache[signature] = (idCache.getOrDefault(signature, 0) + 1) % maximumContextNumber
+        if (idCache[signature] == 0)
+            exclusiveFunctions.add(signature.toString())
         maxNumber = max(maxNumber, idCache[signature]!!)
         return idCache[signature]!!
     }
@@ -38,6 +41,9 @@ class ConcurrentFNameIdGenerator<T> {
 
     fun generateId(signature: T): Int = lock.withLock {
         idCache[signature] = idCache.getOrDefault(signature, idCache.size)
+        return idCache[signature]!!
+    }
+    fun getId(signature: T): Int = lock.withLock {
         return idCache[signature]!!
     }
 }
