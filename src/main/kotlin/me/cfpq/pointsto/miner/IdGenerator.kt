@@ -26,13 +26,19 @@ class ConcurrentFCallIdGenerator<T> {
     private var maxNumber = 0
 
     fun generateId(signature: T): Int = lock.withLock {
-        idCache[signature] = (idCache.getOrDefault(signature, 0) + 1) % maximumContextNumber
-        if (idCache[signature] == 0)
+        idCache[signature] = (idCache.getOrDefault(signature, 0) + 1)
+        val result = idCache[signature]!! % maximumContextNumber
+        if (result == 0)
             exclusiveFunctions.add(signature.toString())
-        maxNumber = max(maxNumber, idCache[signature]!!)
-        return idCache[signature]!!
+        maxNumber = max(maxNumber, result)
+        return result
     }
     fun getMaxNumber(): Int = lock.withLock { return maxNumber }
+    fun getId(signature: T): Int = lock.withLock {
+        return idCache[signature]!!
+    }
+
+    fun getMaxId(): Int = idCache.size
 }
 
 class ConcurrentFNameIdGenerator<T> {

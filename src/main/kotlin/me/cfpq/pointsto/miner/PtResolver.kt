@@ -133,6 +133,9 @@ private fun resolveJcExprToPtVertex(
             yield(expr.method.method)
             yieldAll(expr.method.method.overriddenMethods)
         }
+//        if (allMethods.count() > 1) {
+//            println("${expr.method.method}") //
+//        }
         expr.args.forEachIndexed { i, arg ->
             val rhss = resolveJcExprToPtVertex(method, lineNumber, arg, edges, handSide)
             allMethods.forEach { method ->

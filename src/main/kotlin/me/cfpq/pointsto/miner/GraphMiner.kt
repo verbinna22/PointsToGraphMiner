@@ -76,9 +76,10 @@ fun minePtGraph(
             writer.newLine()
         }
     }
-//    exclusiveFunctions.forEach { println("#exceed: $it ${functionNameIdGenerator.getId(it)}") }
+//    exclusiveFunctions.forEach { println("#exceed: $it ${contextIdGenerator.getId(it)} fun ${functionNameIdGenerator.getId(it)}") } //
     outFolder.resolve(BAD_FUNCTION_FILE_NAME).printWriter().buffered().use { writer ->
-        exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it\n") }
+        writer.append("${contextIdGenerator.getMaxId()} ${exclusiveFunctions.size}'\n")
+        exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it needs ${contextIdGenerator.getId(it)}\n") }
     }
     exclusiveFunctions.clear()
     outFolder.resolve(TIME_STATISTICS_FILE_NAME).printWriter().buffered().use { writer ->
