@@ -131,7 +131,7 @@ private fun resolveJcExprToPtVertex(
         val funId = functionNameIdGenerator.generateId(expr.method.method.humanReadableSignature)
         val allMethods = sequence {
             yield(expr.method.method)
-            yieldAll(expr.method.method.overriddenMethods)
+            yieldAll(expr.method.method.overriddenMethodsOfSuperclasses)
         }
 //        if (allMethods.count() > 1) {
 //            println("${expr.method.method}") //

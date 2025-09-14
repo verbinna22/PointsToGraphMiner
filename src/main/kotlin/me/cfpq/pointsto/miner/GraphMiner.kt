@@ -34,6 +34,9 @@ fun minePtGraph(
             //.map { println("PATH ${it.name}\n"); it } //
             .filter { currentClass -> classesPrefixes.any { currentClass.name.startsWith(it) } }
             //.map { println("MAP ${it.name}\n"); it } //
+            .map { consideredClass ->
+                consideredClass
+            }
             .flatMap { it.declaredMethods.stream() }
             .flatMap { method ->
                 val edges = mutableListOf<PtEdge>()

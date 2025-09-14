@@ -29,7 +29,7 @@ fun JcType.allRawSuperHierarchySequence(): Sequence<JcType> = toRaw().run {
     }
 }
 
-val JcMethod.overriddenMethods
+val JcMethod.overriddenMethodsOfSuperclasses
     get() =
         if (isPrivate || isStatic || isConstructor) emptyList()
         // NOTE: deep hierarch isn't needed here, because `findMethodOrNull` already searches across entire hierarchy
