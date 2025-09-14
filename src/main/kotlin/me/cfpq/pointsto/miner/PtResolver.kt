@@ -1,6 +1,7 @@
 package me.cfpq.pointsto.miner
 
 import mu.KotlinLogging
+import org.jacodb.api.jvm.JcClassOrInterface
 import org.jacodb.api.jvm.JcMethod
 import org.jacodb.api.jvm.cfg.JcArgument
 import org.jacodb.api.jvm.cfg.JcArrayAccess
@@ -19,10 +20,35 @@ import org.jacodb.api.jvm.cfg.JcRef
 import org.jacodb.api.jvm.cfg.JcReturnInst
 import org.jacodb.api.jvm.cfg.JcThis
 import org.jacodb.api.jvm.ext.humanReadableSignature
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
 internal var functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
+
+class ConcurrentTypeToSubtypesMap {
+    private val lock = ReentrantLock()
+    private val idCache = mutableMapOf<JcClassOrInterface, MutableSet<JcClassOrInterface>>()
+
+    fun writeSubType(basic: JcClassOrInterface, subclass: JcClassOrInterface) = lock.withLock {
+        if (!idCache.containsKey(basic)) {
+            idCache[basic] = mutableSetOf()
+        }
+        idCache[basic]!!.add(subclass)
+    }
+
+    fun getSubTypes(basic: JcClassOrInterface): Set<JcClassOrInterface> = lock.withLock {
+        return idCache[basic] ?: setOf()
+    }
+
+    fun getKeyTypes(): Set<JcClassOrInterface> = lock.withLock {
+        return idCache.keys
+    }
+}
+
+internal var typeToSubtypesMap = ConcurrentTypeToSubtypesMap()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {

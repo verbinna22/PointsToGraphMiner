@@ -3,6 +3,7 @@ package me.cfpq.pointsto.miner
 import mu.KotlinLogging
 import org.jacodb.api.jvm.JcClasspath
 import org.jacodb.api.jvm.JcType
+import org.jacodb.api.jvm.ext.allSuperHierarchySequence
 import java.io.File
 import java.util.stream.Collectors.toSet
 import kotlin.time.measureTime
@@ -29,12 +30,16 @@ fun minePtGraph(
     val timeForGeneration = measureTime {
         contextIdGenerator = ConcurrentFCallIdGenerator<String>()
         functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
+        typeToSubtypesMap = ConcurrentTypeToSubtypesMap()
         val edges = cp
             .allClasses()
             //.map { println("PATH ${it.name}\n"); it } //
             .filter { currentClass -> classesPrefixes.any { currentClass.name.startsWith(it) } }
             //.map { println("MAP ${it.name}\n"); it } //
             .map { consideredClass ->
+                consideredClass.allSuperHierarchySequence.forEach { superclass ->
+                    typeToSubtypesMap.writeSubType(superclass, consideredClass)
+                }
                 consideredClass
             }
             .flatMap { it.declaredMethods.stream() }
@@ -80,6 +85,11 @@ fun minePtGraph(
         }
     }
 //    exclusiveFunctions.forEach { println("#exceed: $it ${contextIdGenerator.getId(it)} fun ${functionNameIdGenerator.getId(it)}") } //
+//    typeToSubtypesMap.getKeyTypes().forEach { base ->
+//        typeToSubtypesMap.getSubTypes(base).forEach { sub ->
+//            println("$base $sub")
+//        }
+//    }
     outFolder.resolve(BAD_FUNCTION_FILE_NAME).printWriter().buffered().use { writer ->
         writer.append("${contextIdGenerator.getMaxId()} ${exclusiveFunctions.size}'\n")
         exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it needs ${contextIdGenerator.getId(it)}\n") }
