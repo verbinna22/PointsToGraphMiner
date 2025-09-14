@@ -17,17 +17,34 @@ private var libs : List<Pair<String, List<String>>> = listOf()//= listOf(
 //    "generalJava" to "generalJava",
 //)
 
-suspend fun main() {
+suspend fun main(args: Array<String>) {
 //    showFunId = false to old version
+    if (args.size == 1 && args[0] == "useTI") {
+        useTypeInfoMode = true
+    } else if (args.size > 1) {
+        throw IllegalArgumentException("Must be 1 or 0 arguments")
+    }
     maximumContextNumber = File("maximumContextNumber.txt").bufferedReader().readLine().toInt()
     libs = File("libs.txt").bufferedReader().readLines().map { line ->
         val libs = line.split(" ")
         libs[0].replace(".", "_") to libs
     }
+    val outFolder = File("graphs")
+    if (useTypeInfoMode) {
+        vertexToTypesStringMap = ConcurrentVertexToTypesStringMap()
+    }
     useJacoDb { cp ->
-        val outFolder = File("graphs")
         libs.forEach { (name, prefixes) ->
             logger.info { "Processing $name..." }
+            if (useTypeInfoMode) {
+                outFolder.resolve("$name/type_analysis_results.txt").bufferedReader().forEachLine { line ->
+                    val items = line.split("\t")
+                    val vertex = items[0]
+                    items.drop(1).forEach { type ->
+                        vertexToTypesStringMap.writeSubType(vertex, type)
+                    }
+                }
+            }
             minePtGraph(cp, prefixes.map { "$it." }, outFolder.resolve(name))
         }
     }

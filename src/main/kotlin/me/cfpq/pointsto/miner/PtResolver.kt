@@ -1,7 +1,6 @@
 package me.cfpq.pointsto.miner
 
 import mu.KotlinLogging
-import org.jacodb.api.jvm.JcClassOrInterface
 import org.jacodb.api.jvm.JcMethod
 import org.jacodb.api.jvm.cfg.JcArgument
 import org.jacodb.api.jvm.cfg.JcArrayAccess
@@ -22,11 +21,33 @@ import org.jacodb.api.jvm.cfg.JcThis
 import org.jacodb.api.jvm.ext.humanReadableSignature
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
 internal var functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
+internal var useTypeInfoMode = false
+
+class ConcurrentVertexToTypesStringMap {
+    private val lock = ReentrantLock()
+    private val idCache = mutableMapOf<String, MutableSet<String>>()
+
+    fun writeSubType(basic: String, subclass: String) = lock.withLock {
+        if (!idCache.containsKey(basic)) {
+            idCache[basic] = mutableSetOf()
+        }
+        idCache[basic]!!.add(subclass)
+    }
+
+    fun getSubTypes(basic: String): Set<String> = lock.withLock {
+        return idCache[basic] ?: setOf()
+    }
+
+    fun getKeyTypes(): Set<String> = lock.withLock {
+        return idCache.keys
+    }
+}
+
+internal var vertexToTypesStringMap = ConcurrentVertexToTypesStringMap()
 
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
@@ -133,9 +154,23 @@ private fun resolveJcExprToPtVertex(
         require(handSide == HandSide.RIGHT)
         val contextId = contextIdGenerator.generateId(expr.method.method.humanReadableSignature)
         val funId = functionNameIdGenerator.generateId(expr.method.method.humanReadableSignature)
+        var instanceVertexes: List<PtVertex>? = null
+        var filterSet: MutableSet<String>? = null
+        if (expr is JcInstanceCallExpr) {
+            instanceVertexes = resolveJcExprToPtVertex(method, lineNumber, expr.instance, edges, handSide)
+            filterSet = mutableSetOf()
+            instanceVertexes.forEach { vertex ->
+                filterSet.addAll(vertexToTypesStringMap.getSubTypes(vertex.toString()))
+            }
+        }
         val allMethods = sequence {
             yield(expr.method.method)
-            yieldAll(expr.method.method.overriddenMethodsOfSubclasses)
+            if (useTypeInfoMode) {
+                yieldAll(expr.method.method.overriddenMethodsOfSubclassesWithFilter(filterSet))
+            }
+            else {
+                yieldAll(expr.method.method.overriddenMethodsOfSubclasses)
+            }
         }
 //        if (allMethods.count() > 1) {
 //            println("${expr.method.method}") //
@@ -150,7 +185,7 @@ private fun resolveJcExprToPtVertex(
             }
         }
         if (expr is JcInstanceCallExpr) {
-            val rhss = resolveJcExprToPtVertex(method, lineNumber, expr.instance, edges, handSide)
+            val rhss = instanceVertexes!!
             allMethods.forEach { method ->
                 val lhs = PtThis(method)
                 for (rhs in rhss) {

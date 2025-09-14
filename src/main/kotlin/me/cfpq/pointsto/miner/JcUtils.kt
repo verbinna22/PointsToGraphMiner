@@ -61,6 +61,14 @@ val JcMethod.overriddenMethodsOfSubclasses
             subtype.findMethodOrNull(name, description)?.takeIf { it !is JcUnknownMethod }
         }
 
+fun JcMethod.overriddenMethodsOfSubclassesWithFilter(f: Set<String>?) =
+        if (isPrivate || isStatic || isConstructor) emptyList()
+        else typeToSubtypesMap.getSubTypes(enclosingClass).filter { subtype ->
+            f?.contains(subtype.toString()) ?: true
+        }.mapNotNull { subtype ->
+            subtype.findMethodOrNull(name, description)?.takeIf { it !is JcUnknownMethod }
+        }
+
 val JcMethod.overriddenMethodsOfSuperclasses
     get() =
         if (isPrivate || isStatic || isConstructor) emptyList()
