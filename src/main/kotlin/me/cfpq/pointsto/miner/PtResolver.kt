@@ -28,28 +28,6 @@ private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
 internal var functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
 
-class ConcurrentTypeToSubtypesMap {
-    private val lock = ReentrantLock()
-    private val idCache = mutableMapOf<JcClassOrInterface, MutableSet<JcClassOrInterface>>()
-
-    fun writeSubType(basic: JcClassOrInterface, subclass: JcClassOrInterface) = lock.withLock {
-        if (!idCache.containsKey(basic)) {
-            idCache[basic] = mutableSetOf()
-        }
-        idCache[basic]!!.add(subclass)
-    }
-
-    fun getSubTypes(basic: JcClassOrInterface): Set<JcClassOrInterface> = lock.withLock {
-        return idCache[basic] ?: setOf()
-    }
-
-    fun getKeyTypes(): Set<JcClassOrInterface> = lock.withLock {
-        return idCache.keys
-    }
-}
-
-internal var typeToSubtypesMap = ConcurrentTypeToSubtypesMap()
-
 fun resolveJcInst(method: JcMethod, inst: JcInst, edges: MutableList<PtEdge>) = runCatching {
     when (inst) {
         is JcAssignInst -> {
@@ -157,7 +135,7 @@ private fun resolveJcExprToPtVertex(
         val funId = functionNameIdGenerator.generateId(expr.method.method.humanReadableSignature)
         val allMethods = sequence {
             yield(expr.method.method)
-            yieldAll(expr.method.method.overriddenMethodsOfSuperclasses)
+            yieldAll(expr.method.method.overriddenMethodsOfSubclasses)
         }
 //        if (allMethods.count() > 1) {
 //            println("${expr.method.method}") //

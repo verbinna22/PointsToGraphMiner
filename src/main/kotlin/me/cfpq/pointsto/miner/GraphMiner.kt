@@ -84,12 +84,14 @@ fun minePtGraph(
             writer.newLine()
         }
     }
+    // print some values
 //    exclusiveFunctions.forEach { println("#exceed: $it ${contextIdGenerator.getId(it)} fun ${functionNameIdGenerator.getId(it)}") } //
 //    typeToSubtypesMap.getKeyTypes().forEach { base ->
 //        typeToSubtypesMap.getSubTypes(base).forEach { sub ->
 //            println("$base $sub")
 //        }
 //    }
+    // print bad functions
     outFolder.resolve(BAD_FUNCTION_FILE_NAME).printWriter().buffered().use { writer ->
         writer.append("${contextIdGenerator.getMaxId()} ${exclusiveFunctions.size}'\n")
         exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it needs ${contextIdGenerator.getId(it)}\n") }

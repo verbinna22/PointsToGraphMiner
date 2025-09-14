@@ -7,11 +7,36 @@ import org.jacodb.api.jvm.JcMethod
 import org.jacodb.api.jvm.JcRefType
 import org.jacodb.api.jvm.JcType
 import org.jacodb.api.jvm.ext.allSuperHierarchySequence
+import org.jacodb.api.jvm.ext.findDeclaredMethodOrNull
 import org.jacodb.api.jvm.ext.objectType
 import org.jacodb.api.jvm.ext.toType
 import org.jacodb.impl.features.classpaths.JcUnknownMethod
 import java.util.stream.Stream
 import org.jacodb.api.jvm.ext.findMethodOrNull
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
+class ConcurrentTypeToSubtypesMap {
+    private val lock = ReentrantLock()
+    private val idCache = mutableMapOf<JcClassOrInterface, MutableSet<JcClassOrInterface>>()
+
+    fun writeSubType(basic: JcClassOrInterface, subclass: JcClassOrInterface) = lock.withLock {
+        if (!idCache.containsKey(basic)) {
+            idCache[basic] = mutableSetOf()
+        }
+        idCache[basic]!!.add(subclass)
+    }
+
+    fun getSubTypes(basic: JcClassOrInterface): Set<JcClassOrInterface> = lock.withLock {
+        return idCache[basic] ?: setOf()
+    }
+
+    fun getKeyTypes(): Set<JcClassOrInterface> = lock.withLock {
+        return idCache.keys
+    }
+}
+
+internal var typeToSubtypesMap = ConcurrentTypeToSubtypesMap()
 
 fun JcType.toRaw(): JcType {
     return when (this) {
@@ -28,6 +53,13 @@ fun JcType.allRawSuperHierarchySequence(): Sequence<JcType> = toRaw().run {
         else -> sequenceOf(this)
     }
 }
+
+val JcMethod.overriddenMethodsOfSubclasses
+    get() =
+        if (isPrivate || isStatic || isConstructor) emptyList()
+        else typeToSubtypesMap.getSubTypes(enclosingClass).mapNotNull { subtype ->
+            subtype.findMethodOrNull(name, description)?.takeIf { it !is JcUnknownMethod }
+        }
 
 val JcMethod.overriddenMethodsOfSuperclasses
     get() =
