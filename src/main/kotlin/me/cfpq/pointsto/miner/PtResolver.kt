@@ -158,7 +158,8 @@ private fun resolveJcExprToPtVertex(
         var instanceVertexes: List<PtVertex>? = null
         var filterSet: MutableSet<String>? = null
         if (expr is JcInstanceCallExpr) {
-            instanceVertexes = resolveJcExprToPtVertex(method, lineNumber, expr.instance, edges, handSide)
+            assert(expr.instance is JcLocalVar || expr.instance is JcArgument || expr.instance is JcThis)
+            instanceVertexes = resolveJcExprToPtVertex(method, lineNumber, expr.instance, edges, handSide) // should be only variable
             filterSet = mutableSetOf()
             instanceVertexes.forEach { vertex ->
                 filterSet.addAll(vertexToTypesStringMap.getSubTypes(vertex.toString()))
