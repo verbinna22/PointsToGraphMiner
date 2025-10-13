@@ -41,6 +41,19 @@ class ConcurrentFCallIdGenerator<T> {
     fun getMaxId(): Int = idCache.size
 }
 
+class ConcurrentVirtualCallsStatistics {
+    private val lock = ReentrantLock()
+    private val contextIdToVirtualCallNumberAndFName = mutableMapOf<Int, Pair<Int, String>>()
+
+    fun addCall(context: Int, methodNumber: Int, functionSignature: String): Unit = lock.withLock {
+        contextIdToVirtualCallNumberAndFName[context] = methodNumber to functionSignature
+    }
+
+    fun getContextToMethodNumber(): Map<Int, Pair<Int, String>> = lock.withLock {
+        return contextIdToVirtualCallNumberAndFName.toMap()
+    }
+}
+
 class ConcurrentFNameIdGenerator<T> {
     private val lock = ReentrantLock()
     private val idCache = mutableMapOf<T, Int>()

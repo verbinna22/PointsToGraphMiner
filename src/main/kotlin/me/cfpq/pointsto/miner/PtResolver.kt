@@ -25,6 +25,7 @@ import kotlin.concurrent.withLock
 private val logger = KotlinLogging.logger {}
 internal var contextIdGenerator = ConcurrentFCallIdGenerator<String>()
 internal var functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
+internal var virtualCallsStatistics = ConcurrentVirtualCallsStatistics()
 internal var useTypeInfoMode = false
 
 class ConcurrentVertexToTypesStringMap {
@@ -172,9 +173,9 @@ private fun resolveJcExprToPtVertex(
                 yieldAll(expr.method.method.overriddenMethodsOfSubclasses)
             }
         }
-//        if (allMethods.count() > 1) {
-//            println("${expr.method.method}") //
-//        }
+        if (allMethods.count() > 1) {
+            virtualCallsStatistics.addCall(contextId, allMethods.count(), expr.method.method.humanReadableSignature)
+        }
         expr.args.forEachIndexed { i, arg ->
             val rhss = resolveJcExprToPtVertex(method, lineNumber, arg, edges, handSide)
             allMethods.forEach { method ->

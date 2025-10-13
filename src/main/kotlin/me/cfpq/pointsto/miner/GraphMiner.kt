@@ -31,6 +31,7 @@ fun minePtGraph(
         contextIdGenerator = ConcurrentFCallIdGenerator<String>()
         functionNameIdGenerator = ConcurrentFNameIdGenerator<String>()
         typeToSubtypesMap = ConcurrentTypeToSubtypesMap()
+        virtualCallsStatistics = ConcurrentVirtualCallsStatistics()
         val edges = cp
             .allClasses()
             //.map { println("PATH ${it.name}\n"); it } //
@@ -95,6 +96,12 @@ fun minePtGraph(
     outFolder.resolve(BAD_FUNCTION_FILE_NAME).printWriter().buffered().use { writer ->
         writer.append("${contextIdGenerator.getMaxId()} ${exclusiveFunctions.size}'\n")
         exclusiveFunctions.forEach { writer.append("${functionNameIdGenerator.getId(it)} $it needs ${contextIdGenerator.getId(it)}\n") }
+    }
+    outFolder.resolve("virtual_call_statistics.txt").printWriter().buffered().use { writer ->
+        virtualCallsStatistics.getContextToMethodNumber().forEach { contextId, (number, fName) ->
+            writer.append("$fName $contextId $number")
+            writer.newLine()
+        }
     }
     exclusiveFunctions.clear()
     outFolder.resolve(TIME_STATISTICS_FILE_NAME).printWriter().buffered().use { writer ->
