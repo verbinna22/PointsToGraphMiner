@@ -73,7 +73,7 @@ fun <T> NonConcurrentIdGenerator<T>.writeMappings(file: File, map: (T) -> Any? =
             .sortedBy { it.value }
             .forEach {
                 writer.append(it.value.toString())
-                writer.append(": ")
+                writer.append("@")
                 writer.append(map(it.key).toString().replace("\n", "\\n"))
                 writer.newLine()
             }

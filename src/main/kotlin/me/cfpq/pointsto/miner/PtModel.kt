@@ -24,7 +24,8 @@ data class PtLocalVar(
     override val type: JcType
 ) : PtLocal {
     override fun toString(): String {
-        return "PtLocalVar(method=$method, name='$name', type=${type.typeName}, lineNumber=$lineNumber)"
+        //return "PtLocalVar(method=$method, name='$name', type=${type.typeName}, lineNumber=$lineNumber)"
+        return "local@$method@$name@${type.typeName}@$lineNumber"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -54,12 +55,20 @@ data class PtArg(
     override val type: JcType get() = method.parameters.getOrNull(index)?.let {
         method.enclosingClass.classpath.findTypeOrNull(it.type.typeName)
     } ?: method.enclosingClass.classpath.objectType
+
+    override fun toString(): String {
+        return "arg@$method@$index"
+    }
 }
 
 data class PtThis(
     val method: JcMethod
 ) : PtLocal {
     override val type: JcType get() = method.enclosingClass.toType()
+
+    override fun toString(): String {
+        return "this@$method"
+    }
 }
 
 data class PtReturn(
@@ -68,6 +77,10 @@ data class PtReturn(
     override val type: JcType get() =
         method.enclosingClass.classpath.findTypeOrNull(method.returnType.typeName) ?:
             method.enclosingClass.classpath.objectType
+
+    override fun toString(): String {
+        return "return@$method"
+    }
 }
 
 data class PtReturnWithContext(
@@ -85,7 +98,8 @@ class PtTempVertex(
     val lineNumber: Int
 ) : PtVertex {
     override fun toString(): String {
-        return "PtTempVertex(type=${type.typeName}, lineNumber=$lineNumber)"
+        // return "PtTempVertex(type=${type.typeName}, lineNumber=$lineNumber)"
+        return "temp@${type.typeName}@$lineNumber"
     }
 
     // No hashCode() or equals(), because every instance represents its own vertex
@@ -98,7 +112,8 @@ class PtAllocVertex(
     override val type: JcType
 ) : PtVertex {
     override fun toString(): String {
-        return "PtAllocVertex(expr=$expr, method=$method, type=${type.typeName}, lineNumber=$lineNumber)"
+        //return "PtAllocVertex(expr=$expr, method=$method, type=${type.typeName}, lineNumber=$lineNumber)"
+        return "alloc@$expr@$method@${type.typeName}@$lineNumber"
     }
 
     // No hashCode() or equals(), because every instance represents its own vertex
@@ -111,7 +126,7 @@ data class PtStaticContextVertex(val classpath: JcClasspath) : PtVertex {
     override val type: JcType
         get() = classpath.void
 
-    override fun toString(): String = "PtStaticContextVertex"
+    override fun toString(): String = "staticcontext"//"PtStaticContextVertex"
 }
 
 /**
@@ -121,7 +136,7 @@ data class PtStaticContextAllocVertex(val classpath: JcClasspath) : PtVertex {
     override val type: JcType
         get() = classpath.void
 
-    override fun toString(): String = "PtStaticContextAllocVertex"
+    override fun toString(): String = "staticalloc"//"PtStaticContextAllocVertex"
 }
 
 sealed interface PtField
