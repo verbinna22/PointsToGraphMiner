@@ -21,11 +21,12 @@ data class PtLocalVar(
     val method: JcMethod,
     val lineNumber: Int,
     val name: String,
-    override val type: JcType
+    override val type: JcType,
+    val index: Int
 ) : PtLocal {
     override fun toString(): String {
         //return "PtLocalVar(method=$method, name='$name', type=${type.typeName}, lineNumber=$lineNumber)"
-        return "local@$method@$name@${type.typeName}@$lineNumber"
+        return "local@$method@$name@${type.typeName}@$lineNumber@$index"
     }
 
     override fun equals(other: Any?): Boolean {

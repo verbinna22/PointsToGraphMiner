@@ -117,7 +117,7 @@ private fun resolveJcExprToPtVertex(
 ): List<PtVertex> = when (expr) {
     is JcCastExpr -> resolveJcExprToPtVertex(method, lineNumber, expr.operand, edges, handSide)
     is JcArgument -> listOf(PtArg(method, expr.index))
-    is JcLocalVar -> listOf(PtLocalVar(method, lineNumber, expr.name, expr.type))
+    is JcLocalVar -> listOf(PtLocalVar(method, lineNumber, expr.name, expr.type, expr.index))
     is JcThis -> listOf(PtThis(method))
     is JcRef -> { // in new jacodb version we change it to Ref
         val (instance, field) = when (expr) {
