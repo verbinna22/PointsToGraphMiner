@@ -1,8 +1,5 @@
-basic benchmark.objects
-collections benchmark.objects
-cornerCases benchmark.objects
-generalJava benchmark.objects
-reactor
-org.apache.jackrabbit
-com.fasterxml.jackson
-org.jivesoftware.openfire
+custom base
+example base
+issues base
+strconcat base
+taint base
